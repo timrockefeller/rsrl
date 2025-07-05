@@ -3,8 +3,10 @@ use bevy_rapier3d::prelude::*;
 
 mod cuboid_uvcustom;
 use cuboid_uvcustom::CuboidTiled;
+mod camera;
+
 const ALPHA_SPEED: f32 = 3.0;
-const START_POS: Vec3 = Vec3::new(0.0, 5.0, 0.0);
+const START_POS: Vec3 = Vec3::new(0.0, 3.0, 0.0);
 const GOLEM_OFFSET: [Vec3; 5] = [
     Vec3::new(0.0, 0.0, 0.0),
     Vec3::new(0.0, -1.0, 0.0),
@@ -78,11 +80,6 @@ fn setup_scene(
     asset_server: Res<AssetServer>,
 ) {
     cmd.spawn((
-        Camera3d::default(),
-        Transform::from_xyz(-3.0, 3.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
-    ));
-
-    cmd.spawn((
         Collider::cuboid(100.0, 0.1, 100.0),
         Transform::from_xyz(0.0, -2.0, 0.0),
     ));
@@ -147,13 +144,13 @@ fn handle_move_body_key(
 ) {
     for (mut mov, mut joint) in query.iter_mut() {
         let mut changed = false;
-        if keyboard_input.pressed(KeyCode::KeyA) {
+        if keyboard_input.pressed(KeyCode::KeyE) {
             changed = true;
             if mov.blend == 0f32 {
                 mov.alpha = 0.0;
             }
             mov.alpha = f32::clamp(mov.alpha + time.delta_secs() * ALPHA_SPEED, 0.0, 1.0);
-        } else if keyboard_input.pressed(KeyCode::KeyD) {
+        } else if keyboard_input.pressed(KeyCode::KeyQ) {
             changed = true;
             if mov.blend == 0f32 {
                 mov.alpha = 1.0;
@@ -181,6 +178,7 @@ impl Plugin for GameModule {
     fn build(&self, app: &mut App) {
         app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugins(RapierDebugRenderPlugin::default())
+            .add_plugins(camera::PlayerPlugin)
             .add_systems(Startup, setup_scene)
             .add_systems(PostUpdate, handle_on_reset)
             .add_systems(PostUpdate, handle_move_body_key);
