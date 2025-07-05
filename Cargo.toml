@@ -1,0 +1,37 @@
+[package]
+name = "rsrl"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+resolver = "2"
+
+[dependencies]
+bevy = { version = "0.16.1" }
+bevy_rapier3d = {version = "0.30.0"}
+thiserror = { version = "1.0" }
+
+[features]
+default = ["debug"]
+debug = ["dev_mode", "bevy/dynamic_linking"]
+dev_mode = ["bevy/bevy_dev_tools"]
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy)
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+opt-level = "z"
+strip = "symbols"
+lto = "fat"
+codegen-units = 1
+panic = 'abort'
+
+[profile.release.package."*"]
+opt-level = "z"
+strip = "symbols"
+codegen-units = 1
