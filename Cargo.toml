@@ -25,13 +25,17 @@ opt-level = 1
 opt-level = 3
 
 [profile.release]
-opt-level = "z"
+opt-level = "s"
 strip = "symbols"
 lto = "fat"
 codegen-units = 1
-panic = 'abort'
 
 [profile.release.package."*"]
-opt-level = "z"
+opt-level = "s"
 strip = "symbols"
 codegen-units = 1
+
+
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"
+rustflags = ["-Zshare-generics=off"]

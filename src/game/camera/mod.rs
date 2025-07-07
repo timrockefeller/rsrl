@@ -35,7 +35,6 @@ pub struct KeyBindings {
     pub move_right: KeyCode,
     pub move_ascend: KeyCode,
     pub move_descend: KeyCode,
-    pub toggle_grab_cursor: KeyCode,
     pub speed_up: KeyCode,
     pub speed_down: KeyCode,
 }
@@ -49,7 +48,6 @@ impl Default for KeyBindings {
             move_right: KeyCode::KeyD,
             move_ascend: KeyCode::KeyE,
             move_descend: KeyCode::KeyQ,
-            toggle_grab_cursor: KeyCode::AltLeft,
             speed_up: KeyCode::Equal,
             speed_down: KeyCode::Minus,
         }
@@ -75,6 +73,14 @@ fn toggle_grab_cursor(window: &mut Window) {
     }
 }
 
+/// Grabs/ungrabs mouse cursor
+fn set_grab_cursor(window: &mut Window, grab: bool) {
+    if grab == (window.cursor_options.grab_mode == CursorGrabMode::Confined) {
+        return;
+    }
+    toggle_grab_cursor(window);
+}
+
 /// Grabs the cursor when game first starts
 fn initial_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
     if let Ok(mut window) = primary_window.single_mut() {
@@ -85,7 +91,7 @@ fn initial_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow
 }
 
 fn setup_player(mut commands: Commands) {
-    let e = commands.spawn((
+    commands.spawn((
         Camera3d::default(),
         Transform::from_xyz(-3.0, 3.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
         FlyCam,
@@ -186,13 +192,14 @@ fn player_speed_modify(
 }
 
 fn cursor_grab(
-    keys: Res<ButtonInput<KeyCode>>,
-    key_bindings: Res<KeyBindings>,
+    mouse: Res<ButtonInput<MouseButton>>,
     mut primary_window: Query<&mut Window, With<PrimaryWindow>>,
 ) {
     if let Ok(mut window) = primary_window.single_mut() {
-        if keys.just_pressed(key_bindings.toggle_grab_cursor) {
-            toggle_grab_cursor(&mut window);
+        if mouse.pressed(MouseButton::Right) {
+            set_grab_cursor(&mut window, true);
+        } else {
+            set_grab_cursor(&mut window, false);
         }
     } else {
         warn!("Primary window not found for `cursor_grab`!");
@@ -226,12 +233,12 @@ impl Plugin for PlayerPlugin {
         // States
 
         // Initialize
-        app.add_systems(Startup, (setup_player, initial_grab_cursor));
+        app.add_systems(Startup, setup_player);
 
         // free cam
         app.add_systems(
             Update,
-            (player_move, player_look, cursor_grab, player_speed_modify)
+            (player_move, player_look, cursor_grab, player_speed_modify),
         );
     }
 }
